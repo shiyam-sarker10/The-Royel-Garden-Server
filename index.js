@@ -181,6 +181,19 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/Booked/:id", async (req, res) => {
+      const Id = req.params.id;
+      const data = req.body;
+      const query = { _id: new ObjectId(Id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          bookedDate: data.bookedDate,
+        },
+      };
+      const result = await BookedCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    })
     
     
 
