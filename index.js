@@ -174,7 +174,14 @@ async function run() {
     });
 
 
+    app.get("/myBooked/:id", async (req, res) => {
+      const Id = req.params.id;
+      const query = { _id: new ObjectId(Id) };
+      const result = await BookedCollection.findOne(query);
+      res.send(result);
+    });
 
+    
     
 
 
