@@ -136,6 +136,12 @@ async function run() {
 
       res.send(result);
     });
+    app.get("/roomIdSit/:id", async (req, res) => {
+      const Id = req.params.id;
+      const query = { _id: new ObjectId(Id) };
+      const result = await sitCollection.findOne(query);
+      res.send(result);
+    });
 
 
 
@@ -147,12 +153,7 @@ async function run() {
     });
 
 
-    app.get("/roomIdSit/:id", async (req, res) => {
-      const Id = req.params.id;
-      const query = { _id: new ObjectId(Id) };
-      const result = await sitCollection.findOne(query);
-      res.send(result);
-    });
+    
 
 
 
@@ -162,6 +163,8 @@ async function run() {
       const result = await BookedCollection.insertOne(booking);
       res.send(result);
     })
+
+
     app.get("/myBooking/:email", async (req, res) => {
       const newEmail = req.params.email
       const roomSit = await BookedCollection.find({
@@ -169,6 +172,10 @@ async function run() {
       }).toArray();
       res.send(roomSit);
     });
+
+
+
+    
 
 
 
