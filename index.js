@@ -79,6 +79,7 @@ async function run() {
     const roomCollection = client.db("assignment11DB").collection("rooms");
     const sitCollection = client.db("assignment11DB").collection("roomSit");
     const BookedCollection = client.db("assignment11DB").collection("booked");
+    const reviewCollection = client.db("assignment11DB").collection("review");
 
 
     // auth related api
@@ -102,6 +103,7 @@ async function run() {
     // main api 
 
 
+    //rooms 
 
     app.get("/rooms", async (req, res) => {
       const rooms = await roomCollection.find({}).toArray();
@@ -109,6 +111,7 @@ async function run() {
     })
 
 
+    //roomSit
 
     app.get("/roomSit", async (req, res) => {
       const roomSit = await sitCollection.find({}).toArray();
@@ -120,6 +123,11 @@ async function run() {
     app.get("/roomSit/:id", async (req, res) => {
       const commonId = req.params.id;
       const rooms = await sitCollection.find({ commonId: commonId }).toArray();
+      res.send(rooms);
+    })
+    app.get("/singleRoomSit/:id", async (req, res) => {
+      const name = req.params.id;
+      const rooms = await sitCollection.find({ sitName: name }).toArray();
       res.send(rooms);
     })
     app.put("/roomIdSit/:id", async (req, res) => {
@@ -136,13 +144,20 @@ async function run() {
 
       res.send(result);
     });
-    app.get("/roomIdSit/:id", async (req, res) => {
-      const Id = req.params.id;
-      const query = { _id: new ObjectId(Id) };
-      const result = await sitCollection.findOne(query);
+    app.put("/bookingSit/:id", async (req, res) => {
+      const sitName = req.params.id;
+      const data = req.body;
+      const query = { sitName: sitName };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          available: data.available,
+        },
+      };
+      const result = await sitCollection.updateOne(query, updateDoc, options);
+
       res.send(result);
     });
-
 
 
     app.get("/rooms/:id", async (req, res) => {
@@ -172,6 +187,10 @@ async function run() {
       }).toArray();
       res.send(roomSit);
     });
+    app.get("/myBooking", async (req, res) => {
+      const roomSit = await BookedCollection.find().toArray();
+      res.send(roomSit);
+    });
 
 
     app.get("/myBooked/:id", async (req, res) => {
@@ -194,6 +213,30 @@ async function run() {
       const result = await BookedCollection.updateOne(query, updateDoc, options);
       res.send(result);
     })
+    app.delete("/Booked/:id", async (req, res) => {
+      const Id = req.params.id;
+      const query = { _id: new ObjectId(Id) };
+      const result = await BookedCollection.deleteOne(query);
+      res.send(result);
+    })
+
+//  review 
+   app.post("/review", async (req, res) => {
+     const review = req.body;
+     const result = await reviewCollection.insertOne(review);
+     res.send(result);
+   });
+
+   app.get("/review", async (req, res) => {
+     const review = await reviewCollection.find({}).toArray();
+     res.send(review);
+   });
+
+  //  review booking checking 
+  
+    
+
+    
     
     
 
