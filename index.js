@@ -41,29 +41,26 @@ const client = new MongoClient(uri, {
 
 
 
+
+
 const logger = (req, res, next) => {
-  console.log("we are at", req.host, req.originalUrl);
+  console.log("log: info", req.method, req.url);
   next();
 };
 
-
-
 const verifyToken = (req, res, next) => {
-  const token = req.cookies?.token;
-
+  const token = req?.cookies?.token;
   if (!token) {
-    return res.this.status(401).send({ message: "tomar to token e nai miya " });
+    return res.status(401).send({ message: "unauthorized access" });
   }
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
-    if (error) {
-      return res.this.status(401).send({ message: "token e gorbor ase vai" });
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "unauthorized access" });
     }
     req.user = decoded;
     next();
   });
 };
-
-
 
 
 async function run() {
@@ -87,7 +84,7 @@ async function run() {
 
 
 
-    app.post("/jwt", logger, (req, res) => {
+    app.post("/jwt", logger, async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "1hr",
@@ -99,6 +96,13 @@ async function run() {
         })
         .send({ success: true });
     });
+
+    app.post("/logout", async(req,res) =>{
+      res
+      .clearCookie("token",)
+      .send({ success: true });
+    });
+    
 
     // main api 
 
@@ -172,7 +176,7 @@ async function run() {
 
 
 
-    app.post('/myBooking', async (req,res) => {
+    app.post('/myBooking',async (req,res) => {
       const booking = req.body;
       console.log(booking);
       const result = await BookedCollection.insertOne(booking);
@@ -180,13 +184,28 @@ async function run() {
     })
 
 
-    app.get("/myBooking/:email", async (req, res) => {
-      const newEmail = req.params.email
-      const roomSit = await BookedCollection.find({
-        email: newEmail,
-      }).toArray();
+    app.get("/myBooking/:email", logger, verifyToken, async (req, res) => {
+      if(req.user?.email !== req.params?.email){
+        return res.status(401).send({ message: "forbidden access" });
+      }
+      console.log("user email", req.user)
+      let query = { };
+       if (req.params?.email) {
+         query = { email: req.params?.email };
+       }
+      const roomSit = await BookedCollection.find(query).toArray();
       res.send(roomSit);
     });
+
+
+    // app.get("/myBooking/:email", async (req, res) => {
+    //   const newEmail = req.params.email
+    //   const query = { email: newEmail };
+    //   const roomSit = await BookedCollection.find(query).toArray();
+    //   res.send(roomSit);
+    // });
+
+
     app.get("/myBooking", async (req, res) => {
       const roomSit = await BookedCollection.find().toArray();
       res.send(roomSit);
@@ -228,12 +247,30 @@ async function run() {
    });
 
    app.get("/review", async (req, res) => {
-     const review = await reviewCollection.find({}).toArray();
+     const review = await reviewCollection.find().toArray();
      res.send(review);
    });
+  
+
+  app.get("/review/:id", async (req, res) => {
+    const roomId = req.params.id;
+    const roomSit = await reviewCollection
+      .find({
+        commonId: roomId,
+      })
+      .toArray();
+    res.send(roomSit);
+  });
 
   //  review booking checking 
-  
+  app.get("/reviewBooking/:email", async (req, res) => {
+     
+     const newEmail = req.params.email
+     const query = { email: newEmail }
+    const roomSit = await BookedCollection.find(query).toArray();
+    res.send(roomSit);
+  });
+
     
 
     
