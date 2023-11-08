@@ -198,12 +198,6 @@ async function run() {
     });
 
 
-    // app.get("/myBooking/:email", async (req, res) => {
-    //   const newEmail = req.params.email
-    //   const query = { email: newEmail };
-    //   const roomSit = await BookedCollection.find(query).toArray();
-    //   res.send(roomSit);
-    // });
 
 
     app.get("/myBooking", async (req, res) => {
