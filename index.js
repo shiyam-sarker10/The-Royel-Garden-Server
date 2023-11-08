@@ -233,7 +233,7 @@ async function run() {
       res.send(result);
     })
 
-//  review 
+//  reviews 
    app.post("/review", async (req, res) => {
      const review = req.body;
      const result = await reviewCollection.insertOne(review);
@@ -256,7 +256,7 @@ async function run() {
     res.send(roomSit);
   });
 
-  //  review booking checking 
+  //review booking checking 
   app.get("/reviewBooking/:email", async (req, res) => {
      
      const newEmail = req.params.email
