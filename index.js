@@ -1,30 +1,29 @@
 const express = require("express");
+const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const cors = require("cors");
-const app = express();
-require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+require("dotenv").config();
+const app = express();
 const port = process.env.PORT || 5000;
 
 
 
 
 // middleware
+app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://the-royel-garden.netlify.app/",
+      "https://the-royel-garden.netlify.app",
       "https://assigment-11-28aa2.web.app",
       "http://localhost:5173",
+      "https://ass-11-server-eight.vercel.app",
     ],
     credentials: true,
   })
 );
-app.use(express.json());
 app.use(cookieParser());
-
-
 
 
 
@@ -47,11 +46,6 @@ const client = new MongoClient(uri, {
 
 
 
-const logger = (req, res, next) => {
-  console.log("log: info", req.method, req.url);
-  next();
-};
-
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
   if (!token) {
@@ -70,7 +64,7 @@ const verifyToken = (req, res, next) => {
 async function run() {
   try {
 
-
+      
 
 
     // Connect the client to the server	(optional starting in v4.7)
@@ -87,7 +81,7 @@ async function run() {
 
 
 
-    app.post("/jwt", logger, async (req, res) => {
+    app.post("/jwt", async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "1hr",
@@ -188,18 +182,41 @@ async function run() {
     })
 
 
-    app.get("/myBooking/:email", logger, verifyToken, async (req, res) => {
-      if(req.user?.email !== req.params?.email){
-        return res.status(401).send({ message: "forbidden access" });
-      }
-      console.log("user email", req.user)
-      let query = { };
-       if (req.params?.email) {
-         query = { email: req.params?.email };
-       }
-      const roomSit = await BookedCollection.find(query).toArray();
-      res.send(roomSit);
-    });
+
+
+
+app.get("/myBooking/:email",verifyToken, async (req, res) => {
+  try{
+    const paramUser = req.params.email;
+    const reqUsr = req.user.email;
+    if(req.user?.email !== req.params?.email){
+      res.status(401).send({ message: "unauthorized access" });
+    }
+     let query = {};
+     if (req.params?.email) {
+       query = { email: req.params?.email };
+     }
+  const roomSit = await BookedCollection.find(query).toArray();
+  res.send(roomSit,paramUser,reqUsr);
+  }catch{
+    console.log(req.params?.email);
+    console.log("token owner info",req.user?.email) ;
+    res.status(401).send({ message: "unauthorized access" });
+  }
+});
+
+
+
+
+
+
+    // app.get("/myBooking/:email", async (req, res) => {
+    //   console.log("user email", req.user)
+    //   const newEmail = req.params.email
+    //   const query = { email: newEmail }
+    //   const roomSit = await BookedCollection.find(query).toArray();
+    //   res.send(roomSit);
+    // });
 
 
 
